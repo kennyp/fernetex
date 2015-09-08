@@ -39,6 +39,7 @@ defmodule Fernet.Mixfile do
   # Type `mix help deps` for more examples and options
   defp deps do
     [{:json, "~> 0.3.0"},
-     {:timex, "~> 0.19.3"}]
+     {:timex, "~> 0.19.3"},
+     {:ex_doc, "~> 0.8.4"}]
   end
 end
