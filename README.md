@@ -18,7 +18,7 @@ To use FernetEx with your projects, edit your `mix.exs` file and add it as a dep
 
 ```elixir
 defp deps do
-  [{:fernetex, "~> x.x.x"}]
+  [{:fernetex, "~> 0.0.1"}]
 end
 ```
 

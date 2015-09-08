@@ -7,6 +7,7 @@ defmodule Fernet.Mixfile do
      elixir: "~> 1.0",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     package: package,
      deps: deps]
   end
 
@@ -15,6 +16,15 @@ defmodule Fernet.Mixfile do
   # Type `mix help compile.app` for more information
   def application do
     [applications: [:logger, :tzdata]]
+  end
+
+  defp package do
+    [
+      files: ["lib", "priv", "mix.exs", "README.md", "LICENSE"],
+      contributors: ["Kenny Parnell"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/kennyp/fernetex"}
+    ]
   end
 
   # Dependencies can be Hex packages:
