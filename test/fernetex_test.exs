@@ -8,9 +8,21 @@ defmodule FernetTest do
     assert expected_tokens == actual_tokens
   end
 
+  test "verify" do
+    {:ok, cs} = load_fixture("verify")
+    expected_secrets = cs |> Enum.map(&({:ok, &1["src"]}))
+    actual_secrets = cs |> Enum.map(&verify/1)
+    assert expected_secrets == actual_secrets
+  end
+
   defp generate(args) do
     Fernet.generate(message: args["src"], secret: args["secret"],
                     iv: args["iv"], now: args["now"])
+  end
+
+  defp verify(args) do
+    Fernet.verify(token: args["token"], secret: args["secret"],
+                  now: args["now"])
   end
 
   defp load_fixture(fixture_name) do
