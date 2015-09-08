@@ -1,22 +1,54 @@
 defmodule Fernet do
+  @moduledoc """
+  Generate or verify Fernet tokens based on https://github.com/fernet/spec
+  """
+
   use Timex
   use Bitwise, only_operators: true
 
-  def generate(args) do
+  @max_drift 60
+  @default_ttl 60
+  @version 0x80
+
+  @doc """
+  Generate a token for the given message using the secret to encrypt it.
+
+  ## Options
+
+  The accepted options are:
+
+    * `:message` - message to be tokenized
+    * `:secret`  - secret to use for encryptions (256 bits, defaults to env)
+
+  """
+  def generate(options) do
     generate(
-      Dict.fetch!(args, :message),
-      Dict.fetch!(args, :secret),
-      Dict.get(args, :iv, new_iv),
-      Dict.get(args, :now, now))
+      Dict.fetch!(options, :message),
+      Dict.get(options, :secret, default_secret),
+      Dict.get(options, :iv, new_iv),
+      Dict.get(options, :now, now))
   end
 
-  def verify(args) do
+  @doc """
+  Verify a token using the given secret and optionally validate TTL
+
+  ## Options
+
+  The accepted options are:
+
+    * `:token`       - token to be decrypted and verified
+    * `:secret`      - secret to use for decryption (256 bits, defaults to env)
+    * `:ttl`         - If `:enforce_ttl` then this is the time in seconds
+    * `:enforce_ttl` - Should ttl be enforced (default to true)
+
+  """
+  def verify(options) do
     verify(
-      Dict.fetch!(args, :token),
-      Dict.fetch!(args, :secret),
-      Dict.get(args, :ttl, 60),
-      Dict.get(args, :enforce_ttl, true),
-      Dict.get(args, :now, now))
+      Dict.fetch!(options, :token),
+      Dict.get(options, :secret, default_secret),
+      Dict.get(options, :ttl, @default_ttl),
+      Dict.get(options, :enforce_ttl, true),
+      Dict.get(options, :now, now))
   end
 
   defp verify(token, secret, ttl, enforce_ttl, now) when byte_size(secret) != 32 do
@@ -39,11 +71,11 @@ defmodule Fernet do
     if enforce_ttl do
       cond do
         (issued_date + ttl) <= now -> raise "expired TTL"
-        issued_date > (now + 60) -> raise "far-future TS (unacceptable clock skew)"
+        issued_date > (now + @max_drift) -> raise "far-future TS (unacceptable clock skew)"
         true -> true
       end
     end
-    payload = calculate_payload(0x80, issued_date, iv, encrypted_message)
+    payload = calculate_payload(version, issued_date, iv, encrypted_message)
     new_mac = :crypto.hmac(:sha256, sig_key, payload)
     unless mac == new_mac do
       raise "incorrect mac"
@@ -83,14 +115,14 @@ defmodule Fernet do
   end
 
   defp generate(message, <<sig_key :: binary-size(16), enc_key :: binary-size(16)>>, iv, now) do
-    payload = calculate_payload(0x80, now, iv, encrypt(enc_key, message, iv))
+    payload = calculate_payload(@version, now, iv, encrypt(enc_key, message, iv))
     mac = :crypto.hmac(:sha256, sig_key, payload)
     {:ok, iv, Base.url_encode64(payload <> mac)}
   end
 
   defp calculate_payload(version, now, iv, encrypted_message) do
     :erlang.list_to_binary [
-      0x80,                      # Version
+      version,                   # Version
       pack_int64_bigindian(now), # Timestamp
       iv,                        # Initial Vector
       encrypted_message          # Message
@@ -140,6 +172,8 @@ defmodule Fernet do
       ArgumentError -> Base.url_decode64!(secret)
     end
   end
+
+  defp default_secret, do: System.get_env("FERNET_SECRET")
 
   defp new_iv do
     :crypto.rand_bytes 16
