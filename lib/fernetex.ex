@@ -29,22 +29,36 @@ defmodule Fernet do
   end
 
   defp verify(token, <<sig_key :: binary-size(16), enc_key :: binary-size(16)>>, ttl, enforce_ttl, now) do
-    plain_token = Base.url_decode64!(token)
-    message_length = byte_size(plain_token) - 57
+    {:ok, plain_token, message_length} = parse_token(token)
+    if message_length <= 0, do: raise "too short"
     <<version :: binary-size(1),
       issued_date :: 64-big-unsigned-integer-unit(1),
       iv :: binary-size(16),
       encrypted_message :: binary-size(message_length),
       mac :: binary-size(32)>> = plain_token
-    if enforce_ttl and !(((issued_date + ttl) >= now) && (issued_date < (now + 60))) do
-      raise "Issued timestamp is out of range!"
+    if enforce_ttl do
+      cond do
+        (issued_date + ttl) <= now -> raise "expired TTL"
+        issued_date > (now + 60) -> raise "far-future TS (unacceptable clock skew)"
+        true -> true
+      end
     end
     payload = calculate_payload(0x80, issued_date, iv, encrypted_message)
     new_mac = :crypto.hmac(:sha256, sig_key, payload)
     unless mac == new_mac do
-      raise "Signature does not match!"
+      raise "incorrect mac"
     end
     {:ok, decrypt(enc_key, encrypted_message, iv)}
+  end
+
+  defp parse_token(token) do
+    try do
+      plain_token = Base.url_decode64!(token)
+      message_length = byte_size(plain_token) - 57
+      {:ok, plain_token, message_length}
+    rescue
+      ArgumentError -> raise "invalid base64"
+    end
   end
 
   defp generate(message, _secret, _iv, _now) when is_nil(message) or byte_size(message) == 0 do
@@ -90,33 +104,29 @@ defmodule Fernet do
     |> :erlang.list_to_binary
   end
 
-  defp unpack_int64_bigindian(value) do
-    value
-    |> :erlang.binary_to_list
-    |> Enum.reverse
-    |> Enum.with_index
-    |> Enum.reduce 0, fn({b,i}, acc) ->
-      IO.inspect b
-      IO.inspect i
-      IO.inspect acc
-      IO.puts "-----"
-      acc ||| (b <<< (i * 8))
-    end
-  end
-
   defp encrypt(key, message, iv) do
     :crypto.block_encrypt(:aes_cbc128, key, iv, pad(message))
   end
 
   defp decrypt(key, message, iv) do
-    :crypto.block_decrypt(:aes_cbc128, key, iv, message) |> String.rstrip ?\v
+    if rem(byte_size(message), 16) != 0, do: raise "payload size not multiple of block size"
+    padded_message = :crypto.block_decrypt(:aes_cbc128, key, iv, message)
+    pad_len = :binary.last(padded_message)
+    msg_len = byte_size(padded_message) - pad_len
+    <<plain_message :: binary-size(msg_len), the_padding :: binary-size(pad_len)>> = padded_message
+    unless Enum.all?(:erlang.binary_to_list(the_padding), fn (p) -> p == pad_len end), do: raise "padding error"
+    plain_message
   end
 
   defp pad(message) do
     case rem(byte_size(message), 16) do
       0 -> message
-      r -> message <> String.duplicate("\v", 16 - r)
+      r -> message <> padding(16 - r)
     end
+  end
+
+  defp padding(len) do
+    1..len |> Enum.reduce <<>>, fn(_i, acc) -> acc <> <<len>> end
   end
 
   defp decode_secret!(secret) when byte_size(secret) == 32 do

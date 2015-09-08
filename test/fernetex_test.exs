@@ -15,6 +15,19 @@ defmodule FernetTest do
     assert expected_secrets == actual_secrets
   end
 
+  test "invalid" do
+    {:ok, cs} = load_fixture("invalid")
+    expected_errors = cs |> Enum.map(&(&1["desc"]))
+    actual_errors = cs |> Enum.map fn(c) ->
+      try do
+        verify(c)
+      rescue
+        e in RuntimeError -> e.message
+      end
+    end
+    assert expected_errors == actual_errors
+  end
+
   defp generate(args) do
     Fernet.generate(message: args["src"], secret: args["secret"],
                     iv: args["iv"], now: args["now"])
