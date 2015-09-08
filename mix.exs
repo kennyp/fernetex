@@ -20,6 +20,7 @@ defmodule Fernet.Mixfile do
 
   defp package do
     [
+      description: "Elixir implementation of Fernet library based on https://github.com/fernet/spec",
       files: ["lib", "priv", "mix.exs", "README.md", "LICENSE"],
       contributors: ["Kenny Parnell"],
       licenses: ["MIT"],
