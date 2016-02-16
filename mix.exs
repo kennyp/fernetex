@@ -1,12 +1,16 @@
 defmodule Fernet.Mixfile do
   use Mix.Project
 
+  @version "0.0.1"
+
   def project do
     [app: :fernetex,
-     version: "0.0.1",
+     version: @version,
      elixir: "~> 1.0",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     docs: [source_ref: "v#{@version}", main: "Fernet",
+            source_url: "https://github.com/kennyp/fernetex"],
      package: package,
      deps: deps]
   end
@@ -38,8 +42,9 @@ defmodule Fernet.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    [{:json, "~> 0.3.0"},
-     {:timex, "~> 0.19.3"},
-     {:ex_doc, "~> 0.8.4"}]
+    [{:earmark, "~> 0.2.0", only: [:dev]},
+     {:ex_doc, "~> 0.11.3", only: [:dev]},
+     {:json, "~> 0.3.0", only: [:test]},
+     {:timex, "~> 1.0"}]
   end
 end
