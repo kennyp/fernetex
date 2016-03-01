@@ -26,7 +26,7 @@ defmodule Fernet.Mixfile do
     [
       description: "Elixir implementation of Fernet library based on https://github.com/fernet/spec",
       files: ["lib", "priv", "mix.exs", "README.md", "LICENSE"],
-      contributors: ["Kenny Parnell"],
+      maintainers: ["Kenny Parnell"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/kennyp/fernetex"}
     ]
