@@ -1,7 +1,7 @@
 defmodule Fernet.Mixfile do
   use Mix.Project
 
-  @version "0.0.1"
+  @version "0.0.2"
 
   def project do
     [app: :fernetex,
@@ -44,6 +44,7 @@ defmodule Fernet.Mixfile do
   defp deps do
     [{:earmark, "~> 0.2.0", only: [:dev]},
      {:ex_doc, "~> 0.11.3", only: [:dev]},
+     {:credo, "~> 0.3.4", only: [:dev]},
      {:json, "~> 0.3.0", only: [:test]},
      {:timex, "~> 1.0"}]
   end
