@@ -17,16 +17,14 @@ defmodule Fernet do
 
   The accepted options are:
 
-    * `:message` - message to be tokenized
-    * `:secret`  - secret to use for encryptions (256 bits, defaults to env)
-
+    * `:secret` - secret to use for encryptions (256 bits, defaults to
+                  `FERNET_SECRET` env var)
   """
-  def generate(options) do
-    generate(
-      Dict.fetch!(options, :message),
-      Dict.get(options, :secret, default_secret),
-      Dict.get(options, :iv, new_iv),
-      Dict.get(options, :now, now))
+  def generate(message, options) do
+    generate(message,
+             Dict.get(options, :secret, default_secret),
+             Dict.get(options, :iv, new_iv),
+             Dict.get(options, :now, now))
   end
 
   @doc """
@@ -39,8 +37,8 @@ defmodule Fernet do
     * `:token`       - token to be decrypted and verified
     * `:secret`      - secret to use for decryption (256 bits, defaults to env)
     * `:ttl`         - If `:enforce_ttl` then this is the time in seconds
+                       (defaults to 60 seconds)
     * `:enforce_ttl` - Should ttl be enforced (default to true)
-
   """
   def verify(options) do
     verify(

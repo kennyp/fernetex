@@ -29,7 +29,7 @@ defmodule FernetTest do
   end
 
   defp generate(args) do
-    Fernet.generate(message: args["src"], secret: args["secret"],
+    Fernet.generate(args["src"], secret: args["secret"],
                     iv: args["iv"], now: args["now"])
   end
 
