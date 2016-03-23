@@ -1,6 +1,25 @@
 defmodule Fernet do
   @moduledoc """
   Generate or verify Fernet tokens based on https://github.com/fernet/spec
+
+  ## Example
+
+  Fernet generates an encrypted ciphertext from plaintext using the supplied
+  256-bit secret:
+
+      iex> secret = "lBrMpXneb47e_iY4RFA-HhF2vk2zeL4smfijX-y02-g="
+      iex> plaintext = "Hello, world!"
+      iex> {:ok, _iv, ciphertext} = Fernet.generate(plaintext, secret: secret)
+      iex> {:ok, ^plaintext} = Fernet.verify(ciphertext, secret: secret)
+      {:ok, "Hello, world!"}
+
+  A TTL can optionally be supplied during decryption to reject stale messages:
+
+      iex> secret = "lBrMpXneb47e_iY4RFA-HhF2vk2zeL4smfijX-y02-g="
+      iex> plaintext = "Hello, world!"
+      iex> {:ok, _iv, ciphertext} = Fernet.generate(plaintext, secret: secret)
+      iex> Fernet.verify(ciphertext, secret: secret, ttl: 0)
+      ** (RuntimeError) expired TTL
   """
 
   use Timex

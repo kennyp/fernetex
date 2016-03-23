@@ -1,5 +1,6 @@
 defmodule FernetTest do
   use ExUnit.Case, async: true
+  doctest Fernet
 
   test "generate" do
     {:ok, cs} = load_fixture("generate")
