@@ -1,7 +1,7 @@
 defmodule Fernet.Mixfile do
   use Mix.Project
 
-  @version "0.0.1"
+  @version "0.0.2"
 
   def project do
     [app: :fernetex,
@@ -26,7 +26,7 @@ defmodule Fernet.Mixfile do
     [
       description: "Elixir implementation of Fernet library based on https://github.com/fernet/spec",
       files: ["lib", "priv", "mix.exs", "README.md", "LICENSE"],
-      contributors: ["Kenny Parnell"],
+      maintainers: ["Kenny Parnell"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/kennyp/fernetex"}
     ]
@@ -44,6 +44,7 @@ defmodule Fernet.Mixfile do
   defp deps do
     [{:earmark, "~> 0.2.0", only: [:dev]},
      {:ex_doc, "~> 0.11.3", only: [:dev]},
+     {:credo, "~> 0.3.4", only: [:dev]},
      {:json, "~> 0.3.0", only: [:test]},
      {:timex, "~> 1.0"}]
   end

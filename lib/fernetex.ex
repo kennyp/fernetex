@@ -43,7 +43,7 @@ defmodule Fernet do
     generate(message,
              Dict.get(options, :secret, default_secret),
              Dict.get(options, :iv, new_iv),
-             Dict.get(options, :now, now))
+             Dict.get(options, :now, formatted_now))
   end
 
   @doc """
@@ -64,7 +64,7 @@ defmodule Fernet do
            Dict.get(options, :secret, default_secret),
            Dict.get(options, :ttl, @default_ttl),
            Dict.get(options, :enforce_ttl, true),
-           Dict.get(options, :now, now))
+           Dict.get(options, :now, formatted_now))
   end
 
   defp verify(token, secret, ttl, enforce_ttl, now) when byte_size(secret) != 32 do
@@ -78,18 +78,18 @@ defmodule Fernet do
 
   defp verify(token, <<sig_key :: binary-size(16), enc_key :: binary-size(16)>>, ttl, enforce_ttl, now) do
     {:ok, plain_token, message_length} = parse_token(token)
-    if message_length <= 0, do: raise "too short"
     <<version :: binary-size(1),
       issued_date :: 64-big-unsigned-integer-unit(1),
       iv :: binary-size(16),
       encrypted_message :: binary-size(message_length),
       mac :: binary-size(32)>> = plain_token
+      validate_and_decrypt(version, iv, enc_key, sig_key, mac, encrypted_message, issued_date, enforce_ttl, ttl, now)
+  end
+
+  defp validate_and_decrypt(version, iv, enc_key, sig_key, mac, encrypted_message, issued_date, enforce_ttl, ttl, now) do
     if enforce_ttl do
-      cond do
-        (issued_date + ttl) <= now -> raise "expired TTL"
-        issued_date > (now + @max_drift) -> raise "far-future TS (unacceptable clock skew)"
-        true -> true
-      end
+      if ((issued_date + ttl) <= now), do: raise "expired TTL"
+      if (issued_date > (now + @max_drift)), do: raise "far-future TS (unacceptable clock skew)"
     end
     payload = calculate_payload(version, issued_date, iv, encrypted_message)
     new_mac = :crypto.hmac(:sha256, sig_key, payload)
@@ -103,6 +103,7 @@ defmodule Fernet do
     try do
       plain_token = Base.url_decode64!(token)
       message_length = byte_size(plain_token) - 57
+      if message_length <= 0, do: raise "too short"
       {:ok, plain_token, message_length}
     rescue
       ArgumentError -> raise "invalid base64"
@@ -156,8 +157,11 @@ defmodule Fernet do
     :crypto.block_encrypt(:aes_cbc128, key, iv, pad(message))
   end
 
+  defp decrypt(_key, message, _iv) when rem(byte_size(message), 16) != 0 do
+    raise "payload size not multiple of block size"
+  end
+
   defp decrypt(key, message, iv) do
-    if rem(byte_size(message), 16) != 0, do: raise "payload size not multiple of block size"
     padded_message = :crypto.block_decrypt(:aes_cbc128, key, iv, message)
     pad_len = :binary.last(padded_message)
     msg_len = byte_size(padded_message) - pad_len
@@ -174,7 +178,10 @@ defmodule Fernet do
   end
 
   defp padding(len) do
-    1..len |> Enum.reduce(<<>>, fn(_i, acc) -> acc <> <<len>> end)
+    1..len
+    |> Enum.reduce(<<>>, fn(_i, acc) ->
+      acc <> <<len>>
+    end)
   end
 
   defp decode_secret!(secret) when byte_size(secret) == 32 do
@@ -195,7 +202,7 @@ defmodule Fernet do
     :crypto.rand_bytes 16
   end
 
-  defp now do
+  defp formatted_now do
     Date.now |> DateFormat.format!("{ISO}")
   end
 end

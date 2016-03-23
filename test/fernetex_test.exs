@@ -19,13 +19,15 @@ defmodule FernetTest do
   test "invalid" do
     {:ok, cs} = load_fixture("invalid")
     expected_errors = cs |> Enum.map(&(&1["desc"]))
-    actual_errors = cs |> Enum.map(fn(c) ->
-      try do
-        verify(c)
-      rescue
-        e in RuntimeError -> e.message
-      end
-    end)
+    actual_errors =
+      cs
+      |> Enum.map(fn(c) ->
+        try do
+          verify(c)
+        rescue
+          e in RuntimeError -> e.message
+        end
+      end)
     assert expected_errors == actual_errors
   end
 

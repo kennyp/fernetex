@@ -1,6 +1,9 @@
-%{"certifi": {:hex, :certifi, "0.3.0"},
+%{"bunt": {:hex, :bunt, "0.1.5"},
+  "certifi": {:hex, :certifi, "0.3.0"},
   "cipher": {:hex, :cipher, "0.1.0"},
   "combine": {:hex, :combine, "0.7.0"},
+  "credo": {:hex, :credo, "0.3.4"},
+  "dogma": {:hex, :dogma, "0.1.2"},
   "earmark": {:hex, :earmark, "0.2.1"},
   "ex_doc": {:hex, :ex_doc, "0.11.4"},
   "hackney": {:hex, :hackney, "1.4.8"},
@@ -8,6 +11,7 @@
   "idna": {:hex, :idna, "1.0.3"},
   "json": {:hex, :json, "0.3.2"},
   "mimerl": {:hex, :mimerl, "1.0.2"},
+  "poison": {:hex, :poison, "1.5.2"},
   "ssl_verify_hostname": {:hex, :ssl_verify_hostname, "1.0.5"},
   "timex": {:hex, :timex, "1.0.1"},
   "tzdata": {:hex, :tzdata, "0.5.6"}}
