@@ -18,7 +18,7 @@ defmodule Fernet do
   The accepted options are:
 
     * `:secret` - secret to use for encryptions (256 bits, defaults to
-                  `FERNET_SECRET` env var)
+                  `FERNET_SECRET` environment variable)
   """
   def generate(message, options) do
     generate(message,
@@ -34,19 +34,18 @@ defmodule Fernet do
 
   The accepted options are:
 
-    * `:token`       - token to be decrypted and verified
-    * `:secret`      - secret to use for decryption (256 bits, defaults to env)
-    * `:ttl`         - If `:enforce_ttl` then this is the time in seconds
-                       (defaults to 60 seconds)
+    * `:secret`      - secret to use for encryptions (256 bits, defaults to
+                       `FERNET_SECRET` environment variable)
+    * `:ttl`         - If `:enforce_ttl` is true then this is the time in
+                       seconds (defaults to 60 seconds)
     * `:enforce_ttl` - Should ttl be enforced (default to true)
   """
-  def verify(options) do
-    verify(
-      Dict.fetch!(options, :token),
-      Dict.get(options, :secret, default_secret),
-      Dict.get(options, :ttl, @default_ttl),
-      Dict.get(options, :enforce_ttl, true),
-      Dict.get(options, :now, now))
+  def verify(token, options) do
+    verify(token,
+           Dict.get(options, :secret, default_secret),
+           Dict.get(options, :ttl, @default_ttl),
+           Dict.get(options, :enforce_ttl, true),
+           Dict.get(options, :now, now))
   end
 
   defp verify(token, secret, ttl, enforce_ttl, now) when byte_size(secret) != 32 do
