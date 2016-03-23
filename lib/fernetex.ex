@@ -155,7 +155,7 @@ defmodule Fernet do
   end
 
   defp padding(len) do
-    1..len |> Enum.reduce <<>>, fn(_i, acc) -> acc <> <<len>> end
+    1..len |> Enum.reduce(<<>>, fn(_i, acc) -> acc <> <<len>> end)
   end
 
   defp decode_secret!(secret) when byte_size(secret) == 32 do
