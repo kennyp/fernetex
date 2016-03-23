@@ -12,14 +12,15 @@ defmodule Fernet.Mixfile do
      docs: [source_ref: "v#{@version}", main: "Fernet",
             source_url: "https://github.com/kennyp/fernetex"],
      package: package,
-     deps: deps]
+     deps: deps,
+     dialyzer: [plt_add_apps: [:timex]]]
   end
 
   # Configuration for the OTP application
   #
   # Type `mix help compile.app` for more information
   def application do
-    [applications: [:logger, :tzdata]]
+    [applications: [:logger, :timex]]
   end
 
   defp package do
@@ -42,9 +43,10 @@ defmodule Fernet.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    [{:earmark, "~> 0.2.0", only: [:dev]},
+    [{:credo, "~> 0.3.4", only: [:dev]},
+     {:dialyxir, "~> 0.3.3", only: [:dev]},
+     {:earmark, "~> 0.2.0", only: [:dev]},
      {:ex_doc, "~> 0.11.3", only: [:dev]},
-     {:credo, "~> 0.3.4", only: [:dev]},
      {:json, "~> 0.3.0", only: [:test]},
      {:timex, "~> 1.0"}]
   end
