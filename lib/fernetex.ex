@@ -29,6 +29,14 @@ defmodule Fernet do
   @default_ttl 60
   @version 0x80
 
+  @type plaintext :: String.t
+  @type iv :: binary
+  @type ciphertext :: String.t
+  @type generate_options :: [secret: String.t] | %{secret: String.t}
+  @type verify_options :: [secret: String.t, ttl: integer, enforce_ttl: boolean] |
+                          %{secret: String.t, ttl: integer, enforce_ttl: boolean}
+
+  @spec generate(plaintext, generate_options) :: {:ok, iv, ciphertext}
   @doc """
   Generate a token for the given message using the secret to encrypt it.
 
@@ -46,6 +54,7 @@ defmodule Fernet do
              Dict.get(options, :now, formatted_now))
   end
 
+  @spec verify(ciphertext, verify_options) :: {:ok, plaintext}
   @doc """
   Verify a token using the given secret and optionally validate TTL
 
