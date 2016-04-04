@@ -1,5 +1,6 @@
 defmodule FernetTest do
   use ExUnit.Case, async: true
+  doctest Fernet
 
   test "generate" do
     {:ok, cs} = load_fixture("generate")
@@ -31,13 +32,12 @@ defmodule FernetTest do
   end
 
   defp generate(args) do
-    Fernet.generate(message: args["src"], secret: args["secret"],
-                    iv: args["iv"], now: args["now"])
+    Fernet.generate(args["src"], secret: args["secret"], iv: args["iv"],
+                    now: args["now"])
   end
 
   defp verify(args) do
-    Fernet.verify(token: args["token"], secret: args["secret"],
-                  now: args["now"])
+    Fernet.verify(args["token"], secret: args["secret"], now: args["now"])
   end
 
   defp load_fixture(fixture_name) do

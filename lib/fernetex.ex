@@ -1,6 +1,25 @@
 defmodule Fernet do
   @moduledoc """
   Generate or verify Fernet tokens based on https://github.com/fernet/spec
+
+  ## Example
+
+  Fernet generates an encrypted ciphertext from plaintext using the supplied
+  256-bit secret:
+
+      iex> secret = "lBrMpXneb47e_iY4RFA-HhF2vk2zeL4smfijX-y02-g="
+      iex> plaintext = "Hello, world!"
+      iex> {:ok, _iv, ciphertext} = Fernet.generate(plaintext, secret: secret)
+      iex> {:ok, ^plaintext} = Fernet.verify(ciphertext, secret: secret)
+      {:ok, "Hello, world!"}
+
+  A TTL can optionally be supplied during decryption to reject stale messages:
+
+      iex> secret = "lBrMpXneb47e_iY4RFA-HhF2vk2zeL4smfijX-y02-g="
+      iex> plaintext = "Hello, world!"
+      iex> {:ok, _iv, ciphertext} = Fernet.generate(plaintext, secret: secret)
+      iex> Fernet.verify(ciphertext, secret: secret, ttl: 0)
+      ** (RuntimeError) expired TTL
   """
 
   use Timex
@@ -17,16 +36,14 @@ defmodule Fernet do
 
   The accepted options are:
 
-    * `:message` - message to be tokenized
-    * `:secret`  - secret to use for encryptions (256 bits, defaults to env)
-
+    * `:secret` - secret to use for encryptions (256 bits, defaults to
+                  `FERNET_SECRET` environment variable)
   """
-  def generate(options) do
-    generate(
-      Dict.fetch!(options, :message),
-      Dict.get(options, :secret, default_secret),
-      Dict.get(options, :iv, new_iv),
-      Dict.get(options, :now, formatted_now))
+  def generate(message, options) do
+    generate(message,
+             Dict.get(options, :secret, default_secret),
+             Dict.get(options, :iv, new_iv),
+             Dict.get(options, :now, formatted_now))
   end
 
   @doc """
@@ -36,19 +53,18 @@ defmodule Fernet do
 
   The accepted options are:
 
-    * `:token`       - token to be decrypted and verified
-    * `:secret`      - secret to use for decryption (256 bits, defaults to env)
-    * `:ttl`         - If `:enforce_ttl` then this is the time in seconds
+    * `:secret`      - secret to use for encryptions (256 bits, defaults to
+                       `FERNET_SECRET` environment variable)
+    * `:ttl`         - If `:enforce_ttl` is true then this is the time in
+                       seconds (defaults to 60 seconds)
     * `:enforce_ttl` - Should ttl be enforced (default to true)
-
   """
-  def verify(options) do
-    verify(
-      Dict.fetch!(options, :token),
-      Dict.get(options, :secret, default_secret),
-      Dict.get(options, :ttl, @default_ttl),
-      Dict.get(options, :enforce_ttl, true),
-      Dict.get(options, :now, formatted_now))
+  def verify(token, options) do
+    verify(token,
+           Dict.get(options, :secret, default_secret),
+           Dict.get(options, :ttl, @default_ttl),
+           Dict.get(options, :enforce_ttl, true),
+           Dict.get(options, :now, formatted_now))
   end
 
   defp verify(token, secret, ttl, enforce_ttl, now) when byte_size(secret) != 32 do
