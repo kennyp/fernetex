@@ -8,10 +8,10 @@ bytes), a *key* (256 bits), and the current time, and produces a
 or altered without the key.
 
 This package is compatible with the other implementations at
-[https://github.com/fernet](http://hexdocs.pm/fernetex/0.0.1/).
+[https://github.com/fernet](https://github.com/fernet).
 They can exchange tokens freely among each other.
 
-Documentation: [http://hexdocs.pm/fernetex/0.0.1/](http://hexdocs.pm/fernetex/0.0.1/)
+Documentation: [http://hexdocs.pm/fernetex/0.1.0/](http://hexdocs.pm/fernetex/0.1.0/)
 
 
 ### Adding FernetEx To Your Project
