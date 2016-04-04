@@ -1,5 +1,7 @@
 ## FernetEx
 
+[![Build Status](https://travis-ci.org/kennyp/fernetex.svg?branch=master)](https://travis-ci.org/kennyp/fernetex)
+
 Fernet takes a user-provided *message* (an arbitrary sequence of
 bytes), a *key* (256 bits), and the current time, and produces a
 *token*, which contains the message in a form that can't be read
@@ -18,7 +20,7 @@ To use FernetEx with your projects, edit your `mix.exs` file and add it as a dep
 
 ```elixir
 defp deps do
-  [{:fernetex, "~> 0.0.1"}]
+  [{:fernetex, "~> 0.1.0"}]
 end
 ```
 
