@@ -29,12 +29,23 @@ defmodule Fernet do
   @default_ttl 60
   @version 0x80
 
-  @type plaintext :: String.t
+  @type key :: String.t
   @type iv :: binary
+  @type plaintext :: String.t
   @type ciphertext :: String.t
-  @type generate_options :: [key: String.t] | %{key: String.t}
-  @type verify_options :: [key: String.t, ttl: integer, enforce_ttl: boolean] |
-                          %{key: String.t, ttl: integer, enforce_ttl: boolean}
+  @type generate_options :: [key: key] | %{key: key}
+  @type verify_options :: [key: key, ttl: integer, enforce_ttl: boolean] |
+                          %{key: key, ttl: integer, enforce_ttl: boolean}
+
+  @spec generate_key() :: key
+  @doc """
+  Generate a Fernet key made up of a 128-bit signing key and a 128-bit
+  encryption key encoded as a base 64 string with URL and filename safe
+  alphabet.
+  """
+  def generate_key do
+    :crypto.strong_rand_bytes(32) |> encode_key
+  end
 
   @spec generate(plaintext, generate_options) :: {:ok, iv, ciphertext}
   @doc """
@@ -191,6 +202,10 @@ defmodule Fernet do
     |> Enum.reduce(<<>>, fn(_i, acc) ->
       acc <> <<len>>
     end)
+  end
+
+  defp encode_key(key) when byte_size(key) == 32 do
+    Base.url_encode64(key)
   end
 
   defp decode_key!(key) when byte_size(key) == 32 do

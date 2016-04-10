@@ -2,6 +2,12 @@ defmodule FernetTest do
   use ExUnit.Case, async: true
   doctest Fernet
 
+  test "generate_key" do
+    key = Fernet.generate_key
+    decoded_key = Base.url_decode64!(key)
+    assert byte_size(decoded_key) == 32
+  end
+
   test "generate" do
     {:ok, cs} = load_fixture("generate")
     expected_tokens = cs |> Enum.map(&({:ok, :erlang.list_to_binary(&1["iv"]), &1["token"]}))
