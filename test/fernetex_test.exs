@@ -38,12 +38,12 @@ defmodule FernetTest do
   end
 
   defp generate(args) do
-    Fernet.generate(args["src"], key: args["key"], iv: args["iv"],
+    Fernet.generate(args["src"], key: args["secret"], iv: args["iv"],
                     now: args["now"])
   end
 
   defp verify(args) do
-    Fernet.verify(args["token"], key: args["key"], now: args["now"])
+    Fernet.verify(args["token"], key: args["secret"], now: args["now"])
   end
 
   defp load_fixture(fixture_name) do
