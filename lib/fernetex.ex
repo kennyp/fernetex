@@ -54,8 +54,8 @@ defmodule Fernet do
 
   The accepted options are:
 
-    * `:key` - key to use for encryptions (256 bits, defaults to `FERNET_KEY`
-               environment variable)
+    * `:key` - key to use for encryptions (256 bits, defaults to the value
+               of "key" in the fernetex app config)
   """
   def generate(message, options) do
     generate(message,
@@ -73,7 +73,7 @@ defmodule Fernet do
   The accepted options are:
 
     * `:key`         - key to use for encryptions (256 bits, defaults to
-                       `FERNET_KEY` environment variable)
+                       the value of "key" in the fernetex app config)
     * `:ttl`         - If `:enforce_ttl` is true then this is the time in
                        seconds (defaults to 60 seconds)
     * `:enforce_ttl` - Should ttl be enforced (default to true)
@@ -219,7 +219,7 @@ defmodule Fernet do
     end
   end
 
-  defp default_key, do: System.get_env("FERNET_KEY")
+  defp default_key, do: Application.get_env(:fernetex, :key)
 
   defp new_iv do
     :crypto.rand_bytes 16
