@@ -40,8 +40,7 @@ defmodule Fernet do
   @spec generate_key() :: key
   @doc """
   Generate a Fernet key made up of a 128-bit signing key and a 128-bit
-  encryption key encoded as a base 64 string with URL and filename safe
-  alphabet.
+  encryption key encoded using base64 with URL and filename safe alphabet.
   """
   def generate_key do
     :crypto.strong_rand_bytes(32) |> encode_key
