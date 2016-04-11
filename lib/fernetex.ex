@@ -5,20 +5,20 @@ defmodule Fernet do
   ## Example
 
   Fernet generates an encrypted ciphertext from plaintext using the supplied
-  256-bit secret:
+  256-bit key:
 
-      iex> secret = "lBrMpXneb47e_iY4RFA-HhF2vk2zeL4smfijX-y02-g="
+      iex> key = "lBrMpXneb47e_iY4RFA-HhF2vk2zeL4smfijX-y02-g="
       iex> plaintext = "Hello, world!"
-      iex> {:ok, _iv, ciphertext} = Fernet.generate(plaintext, secret: secret)
-      iex> {:ok, ^plaintext} = Fernet.verify(ciphertext, secret: secret)
+      iex> {:ok, _iv, ciphertext} = Fernet.generate(plaintext, key: key)
+      iex> {:ok, ^plaintext} = Fernet.verify(ciphertext, key: key)
       {:ok, "Hello, world!"}
 
   A TTL can optionally be supplied during decryption to reject stale messages:
 
-      iex> secret = "lBrMpXneb47e_iY4RFA-HhF2vk2zeL4smfijX-y02-g="
+      iex> key = "lBrMpXneb47e_iY4RFA-HhF2vk2zeL4smfijX-y02-g="
       iex> plaintext = "Hello, world!"
-      iex> {:ok, _iv, ciphertext} = Fernet.generate(plaintext, secret: secret)
-      iex> Fernet.verify(ciphertext, secret: secret, ttl: 0)
+      iex> {:ok, _iv, ciphertext} = Fernet.generate(plaintext, key: key)
+      iex> Fernet.verify(ciphertext, key: key, ttl: 0)
       ** (RuntimeError) expired TTL
   """
 
@@ -29,60 +29,70 @@ defmodule Fernet do
   @default_ttl 60
   @version 0x80
 
-  @type plaintext :: String.t
+  @type key :: String.t
   @type iv :: binary
+  @type plaintext :: String.t
   @type ciphertext :: String.t
-  @type generate_options :: [secret: String.t] | %{secret: String.t}
-  @type verify_options :: [secret: String.t, ttl: integer, enforce_ttl: boolean] |
-                          %{secret: String.t, ttl: integer, enforce_ttl: boolean}
+  @type generate_options :: [key: key] | %{key: key}
+  @type verify_options :: [key: key, ttl: integer, enforce_ttl: boolean] |
+                          %{key: key, ttl: integer, enforce_ttl: boolean}
+
+  @spec generate_key() :: key
+  @doc """
+  Generate a Fernet key made up of a 128-bit signing key and a 128-bit
+  encryption key encoded using base64 with URL and filename safe alphabet.
+  """
+  def generate_key do
+    :crypto.strong_rand_bytes(32) |> encode_key
+  end
 
   @spec generate(plaintext, generate_options) :: {:ok, iv, ciphertext}
   @doc """
-  Generate a token for the given message using the secret to encrypt it.
+  Generate a token for the given message using the key to encrypt it.
 
   ## Options
 
   The accepted options are:
 
-    * `:secret` - secret to use for encryptions (256 bits, defaults to
-                  `FERNET_SECRET` environment variable)
+    * `:key` - key to use for encryptions (256 bits, defaults to `FERNET_KEY`
+               environment variable)
   """
   def generate(message, options) do
     generate(message,
-             Dict.get(options, :secret, default_secret),
+             Dict.get(options, :key, default_key),
              Dict.get(options, :iv, new_iv),
              Dict.get(options, :now, formatted_now))
   end
 
   @spec verify(ciphertext, verify_options) :: {:ok, plaintext}
   @doc """
-  Verify a token using the given secret and optionally validate TTL
+  Verify a token using the given key and optionally validate TTL
 
   ## Options
 
   The accepted options are:
 
-    * `:secret`      - secret to use for encryptions (256 bits, defaults to
-                       `FERNET_SECRET` environment variable)
+    * `:key`         - key to use for encryptions (256 bits, defaults to
+                       `FERNET_KEY` environment variable)
     * `:ttl`         - If `:enforce_ttl` is true then this is the time in
                        seconds (defaults to 60 seconds)
     * `:enforce_ttl` - Should ttl be enforced (default to true)
   """
   def verify(token, options) do
     verify(token,
-           Dict.get(options, :secret, default_secret),
+           Dict.get(options, :key, default_key),
            Dict.get(options, :ttl, @default_ttl),
            Dict.get(options, :enforce_ttl, true),
            Dict.get(options, :now, formatted_now))
   end
 
-  defp verify(token, secret, ttl, enforce_ttl, now) when byte_size(secret) != 32 do
-    verify(token, decode_secret!(secret), ttl, enforce_ttl, now)
+  defp verify(token, key, ttl, enforce_ttl, now) when byte_size(key) != 32 do
+    verify(token, decode_key!(key), ttl, enforce_ttl, now)
   end
 
-  defp verify(token, secret, ttl, enforce_ttl, now) when is_binary(now) do
+  defp verify(token, key, ttl, enforce_ttl, now) when is_binary(now) do
     secs = now |> DateFormat.parse!("{ISO}") |> Date.to_secs
-    verify(token, secret, ttl, enforce_ttl, secs)
+    verify(token, key, ttl, enforce_ttl, secs)
   end
 
   defp verify(token, <<sig_key :: binary-size(16), enc_key :: binary-size(16)>>, ttl, enforce_ttl, now) do
@@ -119,25 +129,25 @@ defmodule Fernet do
     end
   end
 
-  defp generate(message, _secret, _iv, _now) when is_nil(message) or byte_size(message) == 0 do
+  defp generate(message, _key, _iv, _now) when is_nil(message) or byte_size(message) == 0 do
     raise ArgumentError, "message must be provided"
   end
 
-  defp generate(_message, secret, _iv, _now) when is_nil(secret) or byte_size(secret) < 32 do
-    raise ArgumentError, "secret must be provided"
+  defp generate(_message, key, _iv, _now) when is_nil(key) or byte_size(key) < 32 do
+    raise ArgumentError, "key must be provided"
   end
 
-  defp generate(message, secret, iv, now) when byte_size(secret) != 32 do
-    generate(message, decode_secret!(secret), iv, now)
+  defp generate(message, key, iv, now) when byte_size(key) != 32 do
+    generate(message, decode_key!(key), iv, now)
   end
 
-  defp generate(message, secret, iv, now) when is_list(iv) do
-    generate(message, secret, :erlang.list_to_binary(iv), now)
+  defp generate(message, key, iv, now) when is_list(iv) do
+    generate(message, key, :erlang.list_to_binary(iv), now)
   end
 
-  defp generate(message, secret, iv, now) when is_binary(now) do
+  defp generate(message, key, iv, now) when is_binary(now) do
     secs = now |> DateFormat.parse!("{ISO}") |> Date.to_secs
-    generate(message, secret, iv, secs)
+    generate(message, key, iv, secs)
   end
 
   defp generate(message, <<sig_key :: binary-size(16), enc_key :: binary-size(16)>>, iv, now) do
@@ -193,19 +203,23 @@ defmodule Fernet do
     end)
   end
 
-  defp decode_secret!(secret) when byte_size(secret) == 32 do
-    secret
+  defp encode_key(key) when byte_size(key) == 32 do
+    Base.url_encode64(key)
   end
 
-  defp decode_secret!(secret) do
+  defp decode_key!(key) when byte_size(key) == 32 do
+    key
+  end
+
+  defp decode_key!(key) do
     try do
-      Base.decode64!(secret)
+      Base.decode64!(key)
     rescue
-      ArgumentError -> Base.url_decode64!(secret)
+      ArgumentError -> Base.url_decode64!(key)
     end
   end
 
-  defp default_secret, do: System.get_env("FERNET_SECRET")
+  defp default_key, do: System.get_env("FERNET_KEY")
 
   defp new_iv do
     :crypto.rand_bytes 16

@@ -2,6 +2,12 @@ defmodule FernetTest do
   use ExUnit.Case, async: true
   doctest Fernet
 
+  test "generate_key" do
+    key = Fernet.generate_key
+    decoded_key = Base.url_decode64!(key)
+    assert byte_size(decoded_key) == 32
+  end
+
   test "generate" do
     {:ok, cs} = load_fixture("generate")
     expected_tokens = cs |> Enum.map(&({:ok, :erlang.list_to_binary(&1["iv"]), &1["token"]}))
@@ -11,9 +17,9 @@ defmodule FernetTest do
 
   test "verify" do
     {:ok, cs} = load_fixture("verify")
-    expected_secrets = cs |> Enum.map(&({:ok, &1["src"]}))
-    actual_secrets = cs |> Enum.map(&verify/1)
-    assert expected_secrets == actual_secrets
+    expected_keys = cs |> Enum.map(&({:ok, &1["src"]}))
+    actual_keys = cs |> Enum.map(&verify/1)
+    assert expected_keys == actual_keys
   end
 
   test "invalid" do
@@ -32,12 +38,12 @@ defmodule FernetTest do
   end
 
   defp generate(args) do
-    Fernet.generate(args["src"], secret: args["secret"], iv: args["iv"],
+    Fernet.generate(args["src"], key: args["secret"], iv: args["iv"],
                     now: args["now"])
   end
 
   defp verify(args) do
-    Fernet.verify(args["token"], secret: args["secret"], now: args["now"])
+    Fernet.verify(args["token"], key: args["secret"], now: args["now"])
   end
 
   defp load_fixture(fixture_name) do
