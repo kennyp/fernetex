@@ -10,6 +10,7 @@ defmodule Mix.Tasks.Fernet.Keygen do
   @shortdoc "Generate a new Fernet key"
 
   def run(_args) do
-    IO.puts Fernet.generate_key
+    Fernet.generate_key
+    |> Mix.shell.info
   end
 end

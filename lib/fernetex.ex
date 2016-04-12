@@ -43,7 +43,7 @@ defmodule Fernet do
   encryption key encoded using base64 with URL and filename safe alphabet.
   """
   def generate_key do
-    :crypto.strong_rand_bytes(32) |> encode_key
+    32 |> :crypto.strong_rand_bytes |> encode_key
   end
 
   @spec generate(plaintext, generate_options) :: {:ok, iv, ciphertext}

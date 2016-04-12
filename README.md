@@ -11,7 +11,7 @@ This package is compatible with the other implementations at
 [https://github.com/fernet](https://github.com/fernet).
 They can exchange tokens freely among each other.
 
-Documentation: [http://hexdocs.pm/fernetex/0.1.0/](http://hexdocs.pm/fernetex/0.1.0/)
+Documentation: [http://hexdocs.pm/fernetex/0.2.0/](http://hexdocs.pm/fernetex/0.2.0/)
 
 
 ### Adding FernetEx To Your Project
@@ -20,7 +20,7 @@ To use FernetEx with your projects, edit your `mix.exs` file and add it as a dep
 
 ```elixir
 defp deps do
-  [{:fernetex, "~> 0.1.0"}]
+  [{:fernetex, "~> 0.2.0"}]
 end
 ```
 
@@ -29,3 +29,11 @@ For more information and background, see the Fernet spec at
 
 FernetEx is distributed under the terms of the MIT license.
 See the License file for details.
+
+
+### Useful Mix tasks
+
+FernetEx comes with two useful mix tasks
+
+- `mix fernet.keygen` is useful for generating keys
+- `mix fernet.sign key` is useful for signing a message using the given key
