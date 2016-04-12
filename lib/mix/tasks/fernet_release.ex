@@ -19,8 +19,8 @@ defmodule Mix.Tasks.Fernet.Release do
       0 = Mix.shell.cmd("git tag #{version}")
       0 = Mix.shell.cmd("git push --all")
       0 = Mix.shell.cmd("git push --tags")
-      Mix.run('hex.publish')
-      Mix.run('hex.docs')
+      Mix.Task.run('hex.publish')
+      Mix.Task.run('hex.docs')
     end
   end
 end
