@@ -11,8 +11,8 @@ defmodule Fernet.Mixfile do
      start_permanent: Mix.env == :prod,
      docs: [source_ref: "v#{@version}", main: "Fernet",
             source_url: "https://github.com/kennyp/fernetex"],
-     package: package,
-     deps: deps,
+     package: package(),
+     deps: deps(),
      dialyzer: [plt_add_apps: [:timex]]]
   end
 

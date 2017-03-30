@@ -59,9 +59,9 @@ defmodule Fernet do
   """
   def generate(message, options) do
     generate(message,
-             Dict.get(options, :key, default_key),
-             Dict.get(options, :iv, new_iv),
-             Dict.get(options, :now, formatted_now))
+             Keyword.get(options, :key, default_key()),
+             Keyword.get(options, :iv, new_iv()),
+             Keyword.get(options, :now, formatted_now()))
   end
 
   @spec verify(ciphertext, verify_options) :: {:ok, plaintext}
@@ -80,10 +80,10 @@ defmodule Fernet do
   """
   def verify(token, options) do
     verify(token,
-           Dict.get(options, :key, default_key),
-           Dict.get(options, :ttl, @default_ttl),
-           Dict.get(options, :enforce_ttl, true),
-           Dict.get(options, :now, formatted_now))
+           Keyword.get(options, :key, default_key()),
+           Keyword.get(options, :ttl, @default_ttl),
+           Keyword.get(options, :enforce_ttl, true),
+           Keyword.get(options, :now, formatted_now()))
   end
 
   defp verify(token, key, ttl, enforce_ttl, now) when byte_size(key) != 32 do
@@ -222,7 +222,7 @@ defmodule Fernet do
   defp default_key, do: Application.get_env(:fernetex, :key)
 
   defp new_iv do
-    :crypto.rand_bytes 16
+    :crypto.strong_rand_bytes 16
   end
 
   defp formatted_now do
