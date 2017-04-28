@@ -7,12 +7,15 @@ defmodule Mix.Tasks.Fernet.Release do
 
   use Mix.Task
 
+  alias Mix.Project
+
   @shortdoc "Update readme, tag, and release to hex"
 
   def run(_args) do
-    version = Mix.Project.config |> Keyword.get(:version)
+    version = Keyword.get(Project.config, :version)
+
     if Mix.shell.yes?("Release fernetex #{version}") do
-      "Releasing #{version}" |> Mix.shell.info
+      Mix.shell.info("Releasing #{version}")
       readme = EEx.eval_file("README.md.eex", [version: version])
       :ok = File.write!("README.md", readme)
       0 = Mix.shell.cmd("git commit -am 'Release #{version}'")
