@@ -39,7 +39,7 @@ defmodule FernetTest do
 
   test "key is pulled from config" do
     msg = "Hello World!"
-    iv = :crypto.rand_bytes(16)
+    iv = :crypto.strong_rand_bytes(16)
     {:ok, _iv, from_config} = Fernet.generate(msg, iv: iv)
     {:ok, _iv, passed_in} = Fernet.generate(msg, key: "7I2vY9OM_sAc9nu7yFRoYFngzC6I4V8560OW_53KVVQ=", iv: iv)
     assert from_config == passed_in
