@@ -1,39 +1,45 @@
 defmodule FernetTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   doctest Fernet
 
   test "generate_key" do
-    key = Fernet.generate_key
+    key = Fernet.generate_key()
     decoded_key = Base.url_decode64!(key)
     assert byte_size(decoded_key) == 32
   end
 
   test "generate" do
-    {:ok, cs} = load_fixture("generate")
-    expected_tokens = cs |> Enum.map(&({:ok, :erlang.list_to_binary(&1["iv"]), &1["token"]}))
-    actual_tokens = cs |> Enum.map(&generate/1)
+    cs = load_fixture("generate")
+    expected_tokens = Enum.map(cs, &({:ok, :erlang.list_to_binary(&1["iv"]), &1["token"]}))
+    actual_tokens = Enum.map(cs, &generate/1)
+    assert expected_tokens == actual_tokens
+  end
+
+  test "generate!" do
+    cs = load_fixture("generate")
+    expected_tokens = Enum.map(cs, &({:erlang.list_to_binary(&1["iv"]), &1["token"]}))
+    actual_tokens = Enum.map(cs, &generate!/1)
     assert expected_tokens == actual_tokens
   end
 
   test "verify" do
-    {:ok, cs} = load_fixture("verify")
-    expected_keys = cs |> Enum.map(&({:ok, &1["src"]}))
-    actual_keys = cs |> Enum.map(&verify/1)
+    cs = load_fixture("verify")
+    expected_keys = Enum.map(cs, &({:ok, &1["src"]}))
+    actual_keys = Enum.map(cs, &verify/1)
+    assert expected_keys == actual_keys
+  end
+
+  test "verify!" do
+    cs = load_fixture("verify")
+    expected_keys = Enum.map(cs, &(&1["src"]))
+    actual_keys = Enum.map(cs, &verify!/1)
     assert expected_keys == actual_keys
   end
 
   test "invalid" do
-    {:ok, cs} = load_fixture("invalid")
-    expected_errors = cs |> Enum.map(&(&1["desc"]))
-    actual_errors =
-      cs
-      |> Enum.map(fn(c) ->
-        try do
-          verify(c)
-        rescue
-          e in RuntimeError -> e.message
-        end
-      end)
+    cs = load_fixture("invalid")
+    expected_errors = Enum.map(cs, &(&1["desc"]))
+    actual_errors = Enum.map(cs, &(&1 |> verify |> elem(1)))
     assert expected_errors == actual_errors
   end
 
@@ -45,17 +51,21 @@ defmodule FernetTest do
     assert from_config == passed_in
   end
 
-  defp generate(args) do
-    Fernet.generate(args["src"], key: args["secret"], iv: args["iv"],
-                    now: args["now"])
-  end
+  defp generate(%{"iv" => iv, "now" => now, "secret" => secret, "src" => src}),
+    do: Fernet.generate(src, key: secret, iv: iv, now: now)
 
-  defp verify(args) do
-    Fernet.verify(args["token"], key: args["secret"], now: args["now"])
-  end
+  defp generate!(%{"iv" => iv, "now" => now, "secret" => secret, "src" => src}),
+    do: Fernet.generate!(src, key: secret, iv: iv, now: now)
+
+  defp verify(%{"now" => now, "secret" => secret, "token" => token}),
+    do: Fernet.verify(token, key: secret, now: now)
+
+  defp verify!(%{"now" => now, "secret" => secret, "token" => token}),
+    do: Fernet.verify!(token, key: secret, now: now)
 
   defp load_fixture(fixture_name) do
-    File.read!("fixtures/#{fixture_name}.json")
-    |> JSON.decode
+    "fixtures/#{fixture_name}.json"
+    |> File.read!
+    |> Poison.decode!
   end
 end
