@@ -250,10 +250,7 @@ defmodule Fernet do
   end
 
   defp pad(message) do
-    case rem(byte_size(message), 16) do
-      0 -> message
-      r -> message <> padding(16 - r)
-    end
+    message <> padding(16 - rem(byte_size(message), 16))
   end
 
   defp padding(len) do
