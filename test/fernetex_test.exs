@@ -1,5 +1,7 @@
 defmodule FernetTest do
   use ExUnit.Case
+  use PropCheck
+
   doctest Fernet
 
   test "generate_key" do
@@ -49,6 +51,23 @@ defmodule FernetTest do
     {:ok, _iv, from_config} = Fernet.generate(msg, iv: iv)
     {:ok, _iv, passed_in} = Fernet.generate(msg, key: "7I2vY9OM_sAc9nu7yFRoYFngzC6I4V8560OW_53KVVQ=", iv: iv)
     assert from_config == passed_in
+  end
+
+  test "handles padding on input strings that are a len multiple of 32" do
+    key = "fJXYWeIEcXMO3tLDheFVezM5QWBVFvkymG80n0Rluqs="
+    msg = String.pad_trailing("hello", 32)
+    {:ok, _iv, token} = Fernet.generate(msg, key: key)
+    {:ok, vmsg} = Fernet.verify(token, key: key)
+    assert msg == vmsg
+  end
+
+  property "can always verify what it generates" do
+    key = "fJXYWeIEcXMO3tLDheFVezM5QWBVFvkymG80n0Rluqs="
+    forall msg <- non_empty(utf8())  do
+      {:ok, _iv, token} = Fernet.generate(msg, key: key)
+      {:ok, vmsg} = Fernet.verify(token, key: key)
+      assert msg == vmsg
+    end
   end
 
   defp generate(%{"iv" => iv, "now" => now, "secret" => secret, "src" => src}),

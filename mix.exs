@@ -37,7 +37,8 @@ defmodule Fernet.Mixfile do
      {:dialyxir, "~> 0.5", only: :dev},
      {:earmark, "~> 1.2", only: :dev},
      {:ex_doc, "~> 0.15", only: :dev},
-     {:poison , "~> 3.1", only: :test}
+     {:poison , "~> 3.1", only: :test},
+     {:propcheck, "~> 1.0", only: :test}
     ]
   end
 end
