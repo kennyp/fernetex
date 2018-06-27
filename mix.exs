@@ -1,7 +1,7 @@
 defmodule Fernet.Mixfile do
   use Mix.Project
 
-  @version "0.3.0"
+  @version "0.3.1"
 
   def project do
     [app: :fernetex,
@@ -33,11 +33,11 @@ defmodule Fernet.Mixfile do
      {:timex, "~> 3.1"},
 
      # Dev & Test dependencies
-     {:credo, "~> 0.7", only: :dev},
+     {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
      {:dialyxir, "~> 0.5", only: :dev},
      {:earmark, "~> 1.2", only: :dev},
      {:ex_doc, "~> 0.15", only: :dev},
-     {:poison , "~> 3.1", only: :test},
+     {:poison , "~> 3.1", only: [:dev, :test]},
      {:propcheck, "~> 1.0", only: :test}
     ]
   end
