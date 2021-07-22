@@ -158,7 +158,7 @@ defmodule Fernet do
     do: {:error, "far-future TS (unacceptable clock skew)"}
   defp validate_and_decrypt(version, iv, enc_key, sig_key, mac, encrypted_message, issued_date, _, _, _) do
     payload = calculate_payload(version, issued_date, iv, encrypted_message)
-    new_mac = :crypto.hmac(:sha256, sig_key, payload)
+    new_mac = :crypto.mac(:hmac, :sha256, sig_key, payload)
 
     if mac == new_mac do
       decrypt(enc_key, encrypted_message, iv)
@@ -204,7 +204,7 @@ defmodule Fernet do
 
   defp generate(message, <<sig_key :: binary-size(16), enc_key :: binary-size(16)>>, iv, now) do
     payload = calculate_payload(@version, now, iv, encrypt(enc_key, message, iv))
-    mac = :crypto.hmac(:sha256, sig_key, payload)
+    mac = :crypto.mac(:hmac, :sha256, sig_key, payload)
     {:ok, iv, Base.url_encode64(payload <> mac)}
   end
 
@@ -225,13 +225,13 @@ defmodule Fernet do
   end
 
   defp encrypt(key, message, iv),
-    do: :crypto.block_encrypt(:aes_cbc128, key, iv, pad(message))
+    do: :crypto.crypto_one_time(:aes_128_cbc, key, iv, pad(message), encrypt: true)
 
   defp decrypt(_key, message, _iv) when rem(byte_size(message), 16) != 0,
     do: {:error, "payload size not multiple of block size"}
 
   defp decrypt(key, message, iv) do
-    padded_message = :crypto.block_decrypt(:aes_cbc128, key, iv, message)
+    padded_message = :crypto.crypto_one_time(:aes_128_cbc, key, iv, message, encrypt: false)
     pad_len = :binary.last(padded_message)
     msg_len = byte_size(padded_message) - pad_len
     <<plain_message::binary-size(msg_len), the_padding::binary-size(pad_len)>> =
