@@ -22,8 +22,8 @@ defmodule Fernet do
       {:error, "expired TTL"}
   """
 
+  use Bitwise
   use Timex
-  use Bitwise, only_operators: true
 
   @max_drift 60
   @default_ttl 60
@@ -160,11 +160,31 @@ defmodule Fernet do
     payload = calculate_payload(version, issued_date, iv, encrypted_message)
     new_mac = :crypto.mac(:hmac, :sha256, sig_key, payload)
 
-    if mac == new_mac do
+    if secure_compare(mac, new_mac) do
       decrypt(enc_key, encrypted_message, iv)
     else
       {:error, "incorrect mac"}
     end
+  end
+
+ @doc """
+  Compares the two binaries in constant-time to avoid timing attacks.
+  See: http://codahale.com/a-lesson-in-timing-attacks/
+
+  Taken verbatim from Plug.Crypto implementation: https://github.com/elixir-plug/plug_crypto
+  """
+  @spec secure_compare(binary(), binary()) :: boolean()
+  def secure_compare(left, right) when is_binary(left) and is_binary(right) do
+    byte_size(left) == byte_size(right) and secure_compare(left, right, 0)
+  end
+
+  defp secure_compare(<<x, left::binary>>, <<y, right::binary>>, acc) do
+    xorred = bxor(x, y)
+    secure_compare(left, right, acc ||| xorred)
+  end
+
+  defp secure_compare(<<>>, <<>>, acc) do
+    acc === 0
   end
 
   defp parse_token(token) do
