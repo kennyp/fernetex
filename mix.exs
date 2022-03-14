@@ -1,12 +1,12 @@
 defmodule Fernet.Mixfile do
   use Mix.Project
 
-  @version "0.3.1"
+  @version "0.4.0"
 
   def project do
     [app: :fernetex,
      version: @version,
-     elixir: "~> 1.4",
+     elixir: "~> 1.10",
      start_permanent: Mix.env == :prod,
      docs: [source_ref: "v#{@version}", main: "Fernet",
             source_url: "https://github.com/kennyp/fernetex"],
