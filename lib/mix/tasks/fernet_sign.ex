@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Fernet.Sign do
     {:ok, _} = Application.ensure_all_started(:timex)
 
     :stdio
-    |> IO.read(:all)
+    |> IO.read(:eof)
     |> Fernet.generate(key: key)
     |> elem(2)
     |> Mix.shell().info
