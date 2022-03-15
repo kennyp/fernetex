@@ -14,6 +14,7 @@ defmodule Fernet.Mixfile do
         main: "Fernet",
         source_url: "https://github.com/kennyp/fernetex"
       ],
+      dialyzer: [plt_file: {:no_warn, "priv/plts/dialyzer.plt"}],
       package: package(),
       deps: deps()
     ]
