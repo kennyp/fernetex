@@ -12,35 +12,35 @@ defmodule FernetTest do
 
   test "generate" do
     cs = load_fixture("generate")
-    expected_tokens = Enum.map(cs, &({:ok, :erlang.list_to_binary(&1["iv"]), &1["token"]}))
+    expected_tokens = Enum.map(cs, &{:ok, :erlang.list_to_binary(&1["iv"]), &1["token"]})
     actual_tokens = Enum.map(cs, &generate/1)
     assert expected_tokens == actual_tokens
   end
 
   test "generate!" do
     cs = load_fixture("generate")
-    expected_tokens = Enum.map(cs, &({:erlang.list_to_binary(&1["iv"]), &1["token"]}))
+    expected_tokens = Enum.map(cs, &{:erlang.list_to_binary(&1["iv"]), &1["token"]})
     actual_tokens = Enum.map(cs, &generate!/1)
     assert expected_tokens == actual_tokens
   end
 
   test "verify" do
     cs = load_fixture("verify")
-    expected_keys = Enum.map(cs, &({:ok, &1["src"]}))
+    expected_keys = Enum.map(cs, &{:ok, &1["src"]})
     actual_keys = Enum.map(cs, &verify/1)
     assert expected_keys == actual_keys
   end
 
   test "verify!" do
     cs = load_fixture("verify")
-    expected_keys = Enum.map(cs, &(&1["src"]))
+    expected_keys = Enum.map(cs, & &1["src"])
     actual_keys = Enum.map(cs, &verify!/1)
     assert expected_keys == actual_keys
   end
 
   test "invalid" do
     cs = load_fixture("invalid")
-    expected_errors = Enum.map(cs, &(&1["desc"]))
+    expected_errors = Enum.map(cs, & &1["desc"])
     actual_errors = Enum.map(cs, &(&1 |> verify |> elem(1)))
     assert expected_errors == actual_errors
   end
@@ -49,7 +49,10 @@ defmodule FernetTest do
     msg = "Hello World!"
     iv = :crypto.strong_rand_bytes(16)
     {:ok, _iv, from_config} = Fernet.generate(msg, iv: iv)
-    {:ok, _iv, passed_in} = Fernet.generate(msg, key: "7I2vY9OM_sAc9nu7yFRoYFngzC6I4V8560OW_53KVVQ=", iv: iv)
+
+    {:ok, _iv, passed_in} =
+      Fernet.generate(msg, key: "7I2vY9OM_sAc9nu7yFRoYFngzC6I4V8560OW_53KVVQ=", iv: iv)
+
     assert from_config == passed_in
   end
 
@@ -63,7 +66,8 @@ defmodule FernetTest do
 
   property "can always verify what it generates" do
     key = "fJXYWeIEcXMO3tLDheFVezM5QWBVFvkymG80n0Rluqs="
-    forall msg <- non_empty(utf8())  do
+
+    forall msg <- non_empty(utf8()) do
       {:ok, _iv, token} = Fernet.generate(msg, key: key)
       {:ok, vmsg} = Fernet.verify(token, key: key)
       assert msg == vmsg
@@ -84,7 +88,7 @@ defmodule FernetTest do
 
   defp load_fixture(fixture_name) do
     "fixtures/#{fixture_name}.json"
-    |> File.read!
-    |> Poison.decode!
+    |> File.read!()
+    |> Jason.decode!()
   end
 end
