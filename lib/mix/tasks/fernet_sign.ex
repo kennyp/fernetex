@@ -16,10 +16,10 @@ defmodule Mix.Tasks.Fernet.Sign do
     |> IO.read(:all)
     |> Fernet.generate(key: key)
     |> elem(2)
-    |> Mix.shell.info
+    |> Mix.shell().info
   end
 
   def run(_args) do
-    Mix.raise "usage: mix fernet.sign key"
+    Mix.raise("usage: mix fernet.sign key")
   end
 end
