@@ -41,9 +41,8 @@ defmodule Fernet.Mixfile do
       # Dev & Test dependencies
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: :dev},
-      {:earmark, "~> 1.2", only: :dev},
       {:ex_doc, "~> 0.15", only: :dev},
-      {:poison, "~> 5.0", only: [:dev, :test]},
+      {:jason, "~> 1.0", only: [:dev, :test]},
       {:propcheck, "~> 1.0", only: :test}
     ]
   end

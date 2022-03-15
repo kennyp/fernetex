@@ -89,6 +89,6 @@ defmodule FernetTest do
   defp load_fixture(fixture_name) do
     "fixtures/#{fixture_name}.json"
     |> File.read!()
-    |> Poison.decode!()
+    |> Jason.decode!()
   end
 end
