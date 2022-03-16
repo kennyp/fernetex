@@ -21,7 +21,7 @@ defmodule Fernet.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger]]
+    [extra_applications: [:eex, :logger]]
   end
 
   defp package do
