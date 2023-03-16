@@ -40,7 +40,7 @@ jobs:
       - run: mix credo --strict --all
       - run: mix dialyzer
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Test (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
     strategy:
       matrix:
