@@ -1,6 +1,6 @@
 ## FernetEx
 
-[![Build Status](https://travis-ci.org/kennyp/fernetex.svg?branch=master)](https://travis-ci.org/kennyp/fernetex)
+[![CI Status](https://github.com/kennyp/fernetex/actions/workflows/test.yml/badge.svg)](https://github.com/kennyp/fernetex/actions/workflows/test.yml)
 
 Fernet takes a user-provided *message* (an arbitrary sequence of
 bytes), a *key* (256 bits), and the current time, and produces a
@@ -11,7 +11,7 @@ This package is compatible with the other implementations at
 [https://github.com/fernet](https://github.com/fernet).
 They can exchange tokens freely among each other.
 
-Documentation: [http://hexdocs.pm/fernetex/0.3.1/](http://hexdocs.pm/fernetex/0.3.1/)
+Documentation: [http://hexdocs.pm/fernetex/0.4.0/](http://hexdocs.pm/fernetex/0.4.0/)
 
 
 ### Adding FernetEx To Your Project
@@ -20,7 +20,7 @@ To use FernetEx with your projects, edit your `mix.exs` file and add it as a dep
 
 ```elixir
 defp deps do
-  [{:fernetex, "~> 0.3.1"}]
+  [{:fernetex, "~> 0.4.0"}]
 end
 ```
 
