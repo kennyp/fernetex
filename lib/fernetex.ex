@@ -29,13 +29,14 @@ defmodule Fernet do
   @default_ttl 60
   @version 0x80
 
-  @type key :: String.t
+  @type key :: String.t()
   @type iv :: binary
-  @type plaintext :: String.t
-  @type ciphertext :: String.t
+  @type plaintext :: String.t()
+  @type ciphertext :: String.t()
   @type generate_options :: [key: key] | %{key: key}
-  @type verify_options :: [key: key, ttl: integer, enforce_ttl: boolean] |
-                          %{key: key, ttl: integer, enforce_ttl: boolean}
+  @type verify_options ::
+          [key: key, ttl: integer, enforce_ttl: boolean]
+          | %{key: key, ttl: integer, enforce_ttl: boolean}
 
   @spec generate_key() :: key
   @doc """
@@ -44,12 +45,12 @@ defmodule Fernet do
   """
   def generate_key do
     32
-    |> :crypto.strong_rand_bytes
+    |> :crypto.strong_rand_bytes()
     |> encode_key
   end
 
   @spec generate(plaintext, generate_options) ::
-    {:ok, iv, ciphertext} | {:error, String.t}
+          {:ok, iv, ciphertext} | {:error, String.t()}
   @doc """
   Generate a token for the given message using the key to encrypt it.
 
@@ -61,10 +62,12 @@ defmodule Fernet do
                of "key" in the fernetex app config)
   """
   def generate(message, options) do
-    generate(message,
-             Keyword.get(options, :key, default_key()),
-             Keyword.get(options, :iv, new_iv()),
-             Keyword.get(options, :now, formatted_now()))
+    generate(
+      message,
+      Keyword.get(options, :key, default_key()),
+      Keyword.get(options, :iv, new_iv()),
+      Keyword.get(options, :now, formatted_now())
+    )
   end
 
   @spec generate!(plaintext, generate_options) :: {iv, ciphertext} | no_return
@@ -75,8 +78,8 @@ defmodule Fernet do
     end
   end
 
-  @spec verify(ciphertext, verify_options)
-    :: {:ok, plaintext} | {:error, String.t}
+  @spec verify(ciphertext, verify_options) ::
+          {:ok, plaintext} | {:error, String.t()}
   @doc """
   Verify a token using the given key and optionally validate TTL
 
@@ -91,11 +94,13 @@ defmodule Fernet do
     * `:enforce_ttl` - Should ttl be enforced (default to true)
   """
   def verify(token, options) do
-    verify(token,
-           Keyword.get(options, :key, default_key()),
-           Keyword.get(options, :ttl, @default_ttl),
-           Keyword.get(options, :enforce_ttl, true),
-           Keyword.get(options, :now, formatted_now()))
+    verify(
+      token,
+      Keyword.get(options, :key, default_key()),
+      Keyword.get(options, :ttl, @default_ttl),
+      Keyword.get(options, :enforce_ttl, true),
+      Keyword.get(options, :now, formatted_now())
+    )
   end
 
   @spec verify!(ciphertext, verify_options) :: plaintext | no_return
@@ -114,7 +119,7 @@ defmodule Fernet do
     secs =
       now
       |> Timex.parse!("{ISO:Extended}")
-      |> Timex.to_unix
+      |> Timex.to_unix()
 
     verify(token, key, ttl, enforce_ttl, secs)
   end
@@ -129,14 +134,17 @@ defmodule Fernet do
     do: {:error, reason}
 
   defp validate_and_decrypt(
-    {:ok, token, message_length}, key, enforce_ttl, ttl, now) do
-    <<version           :: binary-size(1),
-      issued_date       :: unsigned-big-integer-size(64)-unit(1),
-      iv                :: binary-size(16),
-      encrypted_message :: binary-size(message_length),
-      mac               :: binary-size(32)>> = token
+         {:ok, token, message_length},
+         key,
+         enforce_ttl,
+         ttl,
+         now
+       ) do
+    <<version::binary-size(1), issued_date::unsigned-big-integer-size(64)-unit(1),
+      iv::binary-size(16), encrypted_message::binary-size(message_length),
+      mac::binary-size(32)>> = token
 
-    <<sig_key :: binary-size(16), enc_key :: binary-size(16)>> = key
+    <<sig_key::binary-size(16), enc_key::binary-size(16)>> = key
 
     validate_and_decrypt(
       version,
@@ -148,15 +156,30 @@ defmodule Fernet do
       issued_date,
       enforce_ttl,
       ttl,
-      now)
+      now
+    )
   end
 
   defp validate_and_decrypt(_, _, _, _, _, _, issued_date, true, ttl, now)
-    when issued_date + ttl <= now, do: {:error, "expired TTL"}
+       when issued_date + ttl <= now,
+       do: {:error, "expired TTL"}
+
   defp validate_and_decrypt(_, _, _, _, _, _, issued_date, true, _, now)
-    when issued_date > (now + @max_drift),
-    do: {:error, "far-future TS (unacceptable clock skew)"}
-  defp validate_and_decrypt(version, iv, enc_key, sig_key, mac, encrypted_message, issued_date, _, _, _) do
+       when issued_date > now + @max_drift,
+       do: {:error, "far-future TS (unacceptable clock skew)"}
+
+  defp validate_and_decrypt(
+         version,
+         iv,
+         enc_key,
+         sig_key,
+         mac,
+         encrypted_message,
+         issued_date,
+         _,
+         _,
+         _
+       ) do
     payload = calculate_payload(version, issued_date, iv, encrypted_message)
     new_mac = :crypto.mac(:hmac, :sha256, sig_key, payload)
 
@@ -167,7 +190,7 @@ defmodule Fernet do
     end
   end
 
- @doc """
+  @doc """
   Compares the two binaries in constant-time to avoid timing attacks.
   See: http://codahale.com/a-lesson-in-timing-attacks/
 
@@ -190,6 +213,7 @@ defmodule Fernet do
   defp parse_token(token) do
     plain_token = Base.url_decode64!(token)
     message_length = byte_size(plain_token) - 57
+
     if message_length <= 0 do
       {:error, "too short"}
     else
@@ -200,12 +224,12 @@ defmodule Fernet do
   end
 
   defp generate(message, _key, _iv, _now)
-    when is_nil(message) or byte_size(message) == 0,
-    do: {:error, "message must be provided"}
+       when is_nil(message) or byte_size(message) == 0,
+       do: {:error, "message must be provided"}
 
   defp generate(_message, key, _iv, _now)
-    when is_nil(key) or byte_size(key) < 32,
-    do: {:error, "key must be provided"}
+       when is_nil(key) or byte_size(key) < 32,
+       do: {:error, "key must be provided"}
 
   defp generate(message, key, iv, now) when byte_size(key) != 32,
     do: generate(message, decode_key!(key), iv, now)
@@ -217,49 +241,52 @@ defmodule Fernet do
     secs =
       now
       |> Timex.parse!("{ISO:Extended}")
-      |> Timex.to_unix
+      |> Timex.to_unix()
 
     generate(message, key, iv, secs)
   end
 
-  defp generate(message, <<sig_key :: binary-size(16), enc_key :: binary-size(16)>>, iv, now) do
+  defp generate(message, <<sig_key::binary-size(16), enc_key::binary-size(16)>>, iv, now) do
     payload = calculate_payload(@version, now, iv, encrypt(enc_key, message, iv))
     mac = :crypto.mac(:hmac, :sha256, sig_key, payload)
     {:ok, iv, Base.url_encode64(payload <> mac)}
   end
 
   defp calculate_payload(version, now, iv, encrypted_message) do
-    :erlang.list_to_binary [
-      version,                   # Version
-      pack_int64_bigindian(now), # Timestamp
-      iv,                        # Initial Vector
-      encrypted_message          # Message
-    ]
+    :erlang.list_to_binary([
+      # Version
+      version,
+      # Timestamp
+      pack_int64_bigindian(now),
+      # Initial Vector
+      iv,
+      # Message
+      encrypted_message
+    ])
   end
 
   defp pack_int64_bigindian(value) do
     0..7
-    |> Enum.map(&((value >>> (&1 * 8)) &&& 0xff))
-    |> Enum.reverse
-    |> :erlang.list_to_binary
+    |> Enum.map(&(value >>> (&1 * 8) &&& 0xFF))
+    |> Enum.reverse()
+    |> :erlang.list_to_binary()
   end
 
   defp encrypt(key, message, iv),
-    do: :crypto.crypto_one_time(:aes_128_cbc, key, iv, pad(message), encrypt: true)
+    do: :crypto.crypto_one_time(:aes_128_cbc, key, iv, pad(message), true)
 
   defp decrypt(_key, message, _iv) when rem(byte_size(message), 16) != 0,
     do: {:error, "payload size not multiple of block size"}
 
   defp decrypt(key, message, iv) do
-    padded_message = :crypto.crypto_one_time(:aes_128_cbc, key, iv, message, encrypt: false)
+    padded_message = :crypto.crypto_one_time(:aes_128_cbc, key, iv, message, false)
     pad_len = :binary.last(padded_message)
     msg_len = byte_size(padded_message) - pad_len
-    <<plain_message::binary-size(msg_len), the_padding::binary-size(pad_len)>> =
-      padded_message
+    <<plain_message::binary-size(msg_len), the_padding::binary-size(pad_len)>> = padded_message
 
     correct_padding =
       the_padding
-      |> :erlang.binary_to_list
+      |> :erlang.binary_to_list()
       |> Enum.all?(&(&1 == pad_len))
 
     if correct_padding do
@@ -274,7 +301,7 @@ defmodule Fernet do
   end
 
   defp padding(len) do
-    Enum.reduce(1..len, <<>>, fn(_i, acc) ->
+    Enum.reduce(1..len, <<>>, fn _i, acc ->
       acc <> <<len>>
     end)
   end
