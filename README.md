@@ -1,6 +1,6 @@
 ## FernetEx
 
-[![Build Status](https://travis-ci.org/kennyp/fernetex.svg?branch=master)](https://travis-ci.org/kennyp/fernetex)
+[![CI Status](https://github.com/kennyp/fernetex/actions/workflows/test.yml/badge.svg)](https://github.com/kennyp/fernetex/actions/workflows/test.yml)
 
 Fernet takes a user-provided *message* (an arbitrary sequence of
 bytes), a *key* (256 bits), and the current time, and produces a
