@@ -4,16 +4,14 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     name: Lint (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
-    strategy:
-      matrix:
-        otp: ['25']
-        elixir: ['1.14']
     steps:
       - uses: actions/checkout@v3
-      - uses: erlef/setup-beam@v1
+      - name: BEAM setup
+        id: beam
+        uses: erlef/setup-beam@v1
         with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
+          otp-version: '25'
+          elixir-version: '1.14'
       - name: Build cache
         uses: actions/cache@v3
         with:
