@@ -273,13 +273,13 @@ defmodule Fernet do
   end
 
   defp encrypt(key, message, iv),
-    do: :crypto.crypto_one_time(:aes_128_cbc, key, iv, pad(message), true)
+    do: :crypto.crypto_one_time(:aes_128_cbc, key, iv, pad(message), encrypt: true)
 
   defp decrypt(_key, message, _iv) when rem(byte_size(message), 16) != 0,
     do: {:error, "payload size not multiple of block size"}
 
   defp decrypt(key, message, iv) do
-    padded_message = :crypto.crypto_one_time(:aes_128_cbc, key, iv, message, false)
+    padded_message = :crypto.crypto_one_time(:aes_128_cbc, key, iv, message, encrypt: false)
     pad_len = :binary.last(padded_message)
     msg_len = byte_size(padded_message) - pad_len
     <<plain_message::binary-size(msg_len), the_padding::binary-size(pad_len)>> = padded_message
