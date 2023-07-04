@@ -7,7 +7,7 @@ defmodule Fernet.Mixfile do
     [
       app: :fernetex,
       version: @version,
-      elixir: "~> 1.11",
+      elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       docs: [
         source_ref: "v#{@version}",
