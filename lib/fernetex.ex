@@ -22,7 +22,7 @@ defmodule Fernet do
       {:error, "expired TTL"}
   """
 
-  use Bitwise
+  import Bitwise
   use Timex
 
   @max_drift 60
