@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         otp: ['26']
-        elixir: ['1.15']
+        elixir: ['1.16']
     steps:
       - uses: actions/checkout@v3
       - name: BEAM setup
@@ -46,13 +46,19 @@ jobs:
     name: Test (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
     strategy:
       matrix:
-        otp: ['23', '24', '25', '26']
-        elixir: ['1.12', '1.13', '1.14', '1.15']
+        elixir: ["1.16", "1.15", "1.14", "1.13", "1.12"]
+        otp: ["26", "25", "24", "23", "22"]
         exclude:
-          - {otp: '23', elixir: '1.15'}
-          - {otp: '25', elixir: '1.12'}
-          - {otp: '26', elixir: '1.12'}
-          - {otp: '26', elixir: '1.13'}
+          - { otp: "23", elixir: "1.16" }
+          - { otp: "22", elixir: "1.16" }
+          - { otp: "23", elixir: "1.15" }
+          - { otp: "22", elixir: "1.15" }
+          - { otp: "26", elixir: "1.14" }
+          - { otp: "22", elixir: "1.14" }
+          - { otp: "26", elixir: "1.13" }
+          - { otp: "25", elixir: "1.13" }
+          - { otp: "26", elixir: "1.12" }
+          - { otp: "25", elixir: "1.12" }
 
     steps:
       - uses: actions/checkout@v3
