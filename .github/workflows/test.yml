@@ -6,10 +6,10 @@ jobs:
     name: Lint (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
     strategy:
       matrix:
-        otp: ['26']
-        elixir: ['1.16']
+        otp: ["27"]
+        elixir: ["1.17"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: BEAM setup
         id: beam
         uses: erlef/setup-beam@v1
@@ -17,7 +17,7 @@ jobs:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
       - name: Build cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: |
             ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-build
@@ -26,7 +26,7 @@ jobs:
           path: |
             _build
       - name: PLT cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: plt_cache
         with:
           key: |
@@ -42,26 +42,30 @@ jobs:
       - run: mix credo --strict --all
       - run: mix dialyzer
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: Test (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
     strategy:
       matrix:
-        elixir: ["1.16", "1.15", "1.14", "1.13", "1.12"]
-        otp: ["26", "25", "24", "23", "22"]
+        elixir: ["1.17", "1.16", "1.15", "1.14", "1.13"]
+        otp: ["27", "26", "25", "24", "23"]
         exclude:
+          - { otp: "24", elixir: "1.17" }
+          - { otp: "23", elixir: "1.17" }
+          - { otp: "22", elixir: "1.17" }
+          - { otp: "27", elixir: "1.16" }
           - { otp: "23", elixir: "1.16" }
           - { otp: "22", elixir: "1.16" }
+          - { otp: "27", elixir: "1.15" }
           - { otp: "23", elixir: "1.15" }
-          - { otp: "22", elixir: "1.15" }
+          - { otp: "27", elixir: "1.14" }
           - { otp: "26", elixir: "1.14" }
           - { otp: "22", elixir: "1.14" }
+          - { otp: "27", elixir: "1.13" }
           - { otp: "26", elixir: "1.13" }
           - { otp: "25", elixir: "1.13" }
-          - { otp: "26", elixir: "1.12" }
-          - { otp: "25", elixir: "1.12" }
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: BEAM setup
         id: beam
         uses: erlef/setup-beam@v1
@@ -69,7 +73,7 @@ jobs:
           otp-version: ${{matrix.otp}}
           elixir-version: ${{matrix.elixir}}
       - name: Mix cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: |
             ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-mix
@@ -78,7 +82,7 @@ jobs:
           path: |
             ~/.mix
       - name: Build cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: |
             ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-build
