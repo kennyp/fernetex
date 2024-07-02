@@ -1,49 +1,18 @@
-on: [push, pull_request]
+name: Continuous Integration
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches:
+      - "master"
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    name: Lint (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
-    strategy:
-      matrix:
-        otp: ["27"]
-        elixir: ["1.17"]
-    steps:
-      - uses: actions/checkout@v4
-      - name: BEAM setup
-        id: beam
-        uses: erlef/setup-beam@v1
-        with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
-      - name: Build cache
-        uses: actions/cache@v4
-        with:
-          key: |
-            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-build
-          restore-keys: |
-            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-build
-          path: |
-            _build
-      - name: PLT cache
-        uses: actions/cache@v4
-        id: plt_cache
-        with:
-          key: |
-            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
-          restore-keys: |
-            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
-          path: |
-            priv/plts
-      - run: mix deps.get
-      - run: mix deps.unlock --check-unused
-      - run: mix compile --warnings-as-errors
-      - run: mix format --check-formatted
-      - run: mix credo --strict --all
-      - run: mix dialyzer
   test:
-    runs-on: ubuntu-latest
-    name: Test (OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}})
+    env:
+      MIX_ENV: test
+    runs-on: ubuntu-20.04
+    name: Test (OTP ${{ matrix.otp }} / Elixir ${{ matrix.elixir }})
     strategy:
       matrix:
         elixir: ["1.17", "1.16", "1.15", "1.14", "1.13"]
@@ -63,32 +32,41 @@ jobs:
           - { otp: "27", elixir: "1.13" }
           - { otp: "26", elixir: "1.13" }
           - { otp: "25", elixir: "1.13" }
-
     steps:
       - uses: actions/checkout@v4
-      - name: BEAM setup
-        id: beam
-        uses: erlef/setup-beam@v1
+      - uses: erlef/setup-beam@v1
         with:
-          otp-version: ${{matrix.otp}}
-          elixir-version: ${{matrix.elixir}}
-      - name: Mix cache
-        uses: actions/cache@v4
-        with:
-          key: |
-            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-mix
-          restore-keys: |
-            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-mix
-          path: |
-            ~/.mix
-      - name: Build cache
-        uses: actions/cache@v4
-        with:
-          key: |
-            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-build
-          restore-keys: |
-            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-build
-          path: |
-            _build
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
       - run: mix deps.get
       - run: mix test
+
+  lint:
+    runs-on: ubuntu-latest
+    name: Linting
+    strategy:
+      matrix:
+        elixir: ["1.17"]
+        otp: ["27"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+      - name: PLT cache
+        uses: actions/cache@v4
+        with:
+          key: |
+            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
+          restore-keys: |
+            ${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-plt
+          path: |
+            priv/plts
+      - run: mix deps.get
+      - run: mix deps.unlock --check-unused
+      - run: mix compile --warnings-as-errors
+      - run: mix format --check-formatted
+      - run: mix credo --strict --all
+      - run: mix dialyzer --halt-exit-status
