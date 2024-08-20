@@ -10,8 +10,6 @@ defmodule Mix.Tasks.Fernet.Sign do
   @shortdoc "Sign STDIN using fernet"
 
   def run([key]) do
-    {:ok, _} = Application.ensure_all_started(:timex)
-
     :stdio
     |> IO.read(:eof)
     |> Fernet.generate(key: key)

@@ -37,9 +37,6 @@ defmodule Fernet.Mixfile do
 
   defp deps do
     [
-      {:timex, "~> 3.1"},
-
-      # Dev & Test dependencies
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.15", only: :dev},
