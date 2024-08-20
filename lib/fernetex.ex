@@ -115,7 +115,7 @@ defmodule Fernet do
   end
 
   defp verify(token, key, ttl, enforce_ttl, now) when is_binary(now) do
-    {:ok, dt, _tz} = DateTime.from_iso8601(now)
+    {:ok, dt, _offset} = DateTime.from_iso8601(now)
     verify(token, key, ttl, enforce_ttl, DateTime.to_unix(dt))
   end
 
@@ -233,7 +233,7 @@ defmodule Fernet do
     do: generate(message, key, :erlang.list_to_binary(iv), now)
 
   defp generate(message, key, iv, now) when is_binary(now) do
-    {:ok, dt, _tz} = DateTime.from_iso8601(now)
+    {:ok, dt, _offset} = DateTime.from_iso8601(now)
     generate(message, key, iv, DateTime.to_unix(dt))
   end
 
