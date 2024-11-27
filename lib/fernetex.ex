@@ -23,7 +23,6 @@ defmodule Fernet do
   """
 
   import Bitwise
-  use Timex
 
   @max_drift 60
   @default_ttl 60
@@ -116,12 +115,8 @@ defmodule Fernet do
   end
 
   defp verify(token, key, ttl, enforce_ttl, now) when is_binary(now) do
-    secs =
-      now
-      |> Timex.parse!("{ISO:Extended}")
-      |> Timex.to_unix()
-
-    verify(token, key, ttl, enforce_ttl, secs)
+    {:ok, dt, _offset} = DateTime.from_iso8601(now)
+    verify(token, key, ttl, enforce_ttl, DateTime.to_unix(dt))
   end
 
   defp verify(token, key, ttl, enforce_ttl, now) do
@@ -238,12 +233,8 @@ defmodule Fernet do
     do: generate(message, key, :erlang.list_to_binary(iv), now)
 
   defp generate(message, key, iv, now) when is_binary(now) do
-    secs =
-      now
-      |> Timex.parse!("{ISO:Extended}")
-      |> Timex.to_unix()
-
-    generate(message, key, iv, secs)
+    {:ok, dt, _offset} = DateTime.from_iso8601(now)
+    generate(message, key, iv, DateTime.to_unix(dt))
   end
 
   defp generate(message, <<sig_key::binary-size(16), enc_key::binary-size(16)>>, iv, now) do
@@ -320,5 +311,5 @@ defmodule Fernet do
 
   defp new_iv, do: :crypto.strong_rand_bytes(16)
 
-  defp formatted_now, do: Timex.format!(Timex.now(), "{ISO:Extended}")
+  defp formatted_now, do: DateTime.utc_now() |> DateTime.to_iso8601(:extended)
 end
