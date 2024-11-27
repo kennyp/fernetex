@@ -11,7 +11,7 @@ This package is compatible with the other implementations at
 [https://github.com/fernet](https://github.com/fernet).
 They can exchange tokens freely among each other.
 
-Documentation: [http://hexdocs.pm/fernetex/0.4.0/](http://hexdocs.pm/fernetex/0.4.0/)
+Documentation: [http://hexdocs.pm/fernetex/0.5.0/](http://hexdocs.pm/fernetex/0.5.0/)
 
 
 ### Adding FernetEx To Your Project
@@ -20,7 +20,7 @@ To use FernetEx with your projects, edit your `mix.exs` file and add it as a dep
 
 ```elixir
 defp deps do
-  [{:fernetex, "~> 0.4.0"}]
+  [{:fernetex, "~> 0.5.0"}]
 end
 ```
 
